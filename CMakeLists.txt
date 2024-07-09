@@ -2,21 +2,24 @@ cmake_minimum_required(VERSION 3.8)
 project(qt_test)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
 endif()
 
 # find dependencies
-
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(rclcpp_components REQUIRED)
-# Qt 패키지 찾기
 find_package(Qt5 COMPONENTS Widgets Core Xml REQUIRED)
-# Qt MOC
+
+# Enable automatic MOC generation
 set(CMAKE_AUTOMOC ON)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+set(CMAKE_AUTOUIC ON)
+
+# Specify UI file
+set(UI_FILES
+  src/mainwindow.ui
+)
+
 
 include_directories(
   include
@@ -24,40 +27,52 @@ include_directories(
   ${Qt5Core_INCLUDE_DIRS}
   ${Qt5Xml_INCLUDE_DIRS}
 )
+
 # Header files
-# set(HEADERS
-#   include/qt_test/mainwindow.h
-# )
+set(HEADERS
+  include/mainwindow.h
+  include/qt_test.hpp
+)
+
+# Source files
+set(SOURCES
+  src/main.cpp
+  src/mainwindow.cpp
+  src/qt_test.cpp
+  ${UI_FILES}
+
+)
 
 set(executable_name qt_test)
 
-add_executable(${executable_name} 
-  ${HEADERS}
-  src/main.cpp
-  src/mainwindow.cpp
-)
-set(library_name ${executable_name}_core)
+# Add executable
+add_executable(${executable_name} ${SOURCES} ${HEADERS})
 
+# set(library_name ${executable_name}_core)
+
+# Set dependencies
 set(dependencies
   rclcpp
   rclcpp_lifecycle
   rclcpp_components
 )
 
-add_library(${library_name} SHARED
-  src/main.cpp
-  src/mainwindow.cpp
-)
+# add_library(${library_name} SHARED
+#   src/main.cpp
+#   src/mainwindow.cpp
+#   src/qt_test.cpp
+# )
 
 ament_target_dependencies(${executable_name}
   ${dependencies}
 )
 
-target_link_libraries(${executable_name} ${library_name} Qt5::Widgets Qt5::Core Qt5::Xml )
+target_link_libraries(${executable_name} Qt5::Widgets Qt5::Core Qt5::Xml)
 
-ament_target_dependencies(${library_name}
+ament_target_dependencies(${executable_name}
   ${dependencies}
 )
+
 
 install(
   DIRECTORY launch

@@ -8,15 +8,7 @@ namespace qt_test
         public:
             explicit qt_node (const rclcpp::NodeOptions & options);
 
-        private:
-
-
-
     };
-
-
-
-
 
 
 

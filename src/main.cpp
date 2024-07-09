@@ -16,14 +16,34 @@
 #include <memory>
 #include "qt_test.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include <QApplication>
+#include "mainwindow.h"
 
 int main(int argc, char ** argv)
 {
+  // Initialize Qt application
+  QApplication app(argc, argv);
+
+  // Initialize ROS
   rclcpp::init(argc, argv);
   const rclcpp::NodeOptions options;
   auto node = std::make_shared<qt_test::qt_node>(options);
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
 
-  return 0;
+  // Show the main window
+  MainWindow window;
+  window.show();
+
+  // Spin the ROS node in a separate thread
+  std::thread ros_thread([&]() {
+    rclcpp::spin(node);
+  });
+
+  // Execute the Qt application
+  int result = app.exec();
+
+  // Shutdown ROS
+  rclcpp::shutdown();
+  ros_thread.join();
+
+  return result;
 }
