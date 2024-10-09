@@ -13,7 +13,8 @@
   <depend>qt5-xml</depend>
   <depend>qt5-core</depend>
   <depend>qt5-widgets</depend>
-
+  <depend>visualization_msgs </depend>
+  
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

@@ -26,24 +26,24 @@ int main(int argc, char ** argv)
 
   // Initialize ROS
   rclcpp::init(argc, argv);
-  const rclcpp::NodeOptions options;
-  auto node = std::make_shared<qt_test::qt_node>(options);
+  // const rclcpp::NodeOptions options;
+  // auto node = std::make_shared<qt_test::qt_node>(options);
 
   // Show the main window
   MainWindow window;
   window.show();
 
-  // Spin the ROS node in a separate thread
-  std::thread ros_thread([&]() {
-    rclcpp::spin(node);
-  });
+  // // Spin the ROS node in a separate thread
+  // std::thread ros_thread([&]() {
+  //   rclcpp::spin(node);
+  // });
 
   // Execute the Qt application
   int result = app.exec();
 
-  // Shutdown ROS
-  rclcpp::shutdown();
-  ros_thread.join();
+  // // Shutdown ROS
+  // rclcpp::shutdown();
+  // ros_thread.join();
 
   return result;
 }
