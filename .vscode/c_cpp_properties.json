@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/kim/colcon_ws/install/rainbow_converter/include/**",
+        "/home/kim/colcon_ws/install/qt_test/include/**",
+        "/home/kim/colcon_ws/install/piot_img_sender/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/kim/colcon_ws/src/lakibeam1_ros2_v1_0_0/include/**",
+        "/home/kim/colcon_ws/src/piot_img_sender/include/**",
+        "/home/kim/colcon_ws/src/qt_test/include/**",
+        "/home/kim/colcon_ws/src/rainbow_converter/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

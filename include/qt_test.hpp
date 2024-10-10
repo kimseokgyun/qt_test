@@ -5,7 +5,57 @@
 #include <cstring>
 #include <cmath>
 #include <random>
+#include <fstream>
 // tree typedef
+
+struct PT_XYZR
+{
+    double x = 0;    // x coordinates
+    double y = 0;    // y coordinates
+    double z = 0;    // z coordinates
+    double vx = 0;   // view vector x
+    double vy = 0;   // view vector y
+    double vz = 0;   // view vector z
+    double r = 0;    // reflect 0~1
+    int k0 = 0;      // original add cnt
+    int k = 0;       // add cnt of tree
+    int do_cnt = 0;  // dynamic object count
+};
+
+
+
+struct KFRAME
+{
+    int id = 0;
+    std::vector<PT_XYZR> pts;
+    Eigen::Matrix4d G;
+    Eigen::Matrix4d opt_G;
+
+    KFRAME()
+    {
+        id = 0;
+        G.setIdentity();
+        opt_G.setIdentity();
+    }
+
+    KFRAME(const KFRAME& p)
+    {
+        id = p.id;
+        pts = p.pts;
+        G = p.G;
+        opt_G = p.opt_G;
+    }
+
+    KFRAME& operator=(const KFRAME& p)
+    {
+        id = p.id;
+        pts = p.pts;
+        G = p.G;
+        opt_G = p.opt_G;
+        return *this;
+    }
+};
+
 
 struct FRAME
 {
@@ -33,20 +83,6 @@ struct FRAME
     }
 };
 
-struct PT_XYZR
-{
-    double x = 0;    // x coordinates
-    double y = 0;    // y coordinates
-    double z = 0;    // z coordinates
-    double vx = 0;   // view vector x
-    double vy = 0;   // view vector y
-    double vz = 0;   // view vector z
-    double r = 0;    // reflect 0~1
-    int k0 = 0;      // original add cnt
-    int k = 0;       // add cnt of tree
-    int do_cnt = 0;  // dynamic object count
-};
-
 
 struct XYZR_CLOUD
 {
@@ -72,7 +108,6 @@ struct XYZR_CLOUD
     
     typedef std::pair<float, float> c_point;
     typedef std::vector<c_point> c_pointList;
-
     struct Point {
     double x, y, theta; // x, y 좌표와 방향 (theta)
     Point(double _x, double _y) : x(_x), y(_y), theta(0.0) {}
@@ -115,8 +150,10 @@ namespace qt_test
         public:
             explicit qt_node (const rclcpp::NodeOptions & options);
 
-            double DOCK_SIZE_X[2] = {-0.2, 0.2};
-            double DOCK_SIZE_Y[2] = {-0.3, 0.3};
+            double DOCK_SIZE_X[2] = {-0.03, 0.03};
+            double DOCK_SIZE_Y[2] = {-0.15, 0.15};
+            // double DOCK_SIZE_X[2] = {-2.0, 2.0};
+            // double DOCK_SIZE_Y[2] = {-3.0, 3.0};    
             double DOCK_ANGLE = 45.0;
             //for ICP
             XYZR_CLOUD get_vmark_cloud();
@@ -132,7 +169,13 @@ namespace qt_test
             void refine_pose(Eigen::Matrix4d& G);
             Eigen::Vector3d TF_to_se2(Eigen::Matrix4d tf);
             double frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen::Matrix4d& G);
+            double kfrm_icp(KFRAME&, KFRAME&, Eigen::Matrix4d&);
             FRAME generateSampleFrame(const c_point& p1, const c_point& p2, const c_point& p3);
+            void log_icp(const std::string &message); 
+            KFRAME generateSampleKFrame(const c_point& p1, const c_point& p2, const c_point& p3);
+            KFRAME generateVKFrame();
+            void publishKFrameMarker(const KFRAME& kframe, int marker_id, const std::string& ns, float r, float g, float b);
+            std::ofstream icp_log_file_; 
         private:
             void timerCallback();
             rclcpp::TimerBase::SharedPtr timer_;
