@@ -14,36 +14,64 @@
 // limitations under the License.
 
 #include <memory>
-#include "qt_test.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <QApplication>
 #include "mainwindow.h"
 
+// int main(int argc, char ** argv)
+// {
+//   // Initialize Qt application
+//   QApplication app(argc, argv);
+
+//   // Initialize ROS
+//   rclcpp::init(argc, argv);
+//   // const rclcpp::NodeOptions options;
+//   // auto node = std::make_shared<qt_test::qt_node>(options);
+
+//   // Show the main window
+//   MainWindow window;
+//   window.show();
+
+//   // // Spin the ROS node in a separate thread
+//   // std::thread ros_thread([&]() {
+//   //   rclcpp::spin(node);
+//   // });
+
+//   // Execute the Qt application
+//   int result = app.exec();
+
+//   // // Shutdown ROS
+//   // rclcpp::shutdown();
+//   // ros_thread.join();
+
+//   return result;
+// }
+
 int main(int argc, char ** argv)
 {
-  // Initialize Qt application
-  QApplication app(argc, argv);
+    // Qt 애플리케이션 초기화
+    QApplication app(argc, argv);
 
-  // Initialize ROS
-  rclcpp::init(argc, argv);
-  // const rclcpp::NodeOptions options;
-  // auto node = std::make_shared<qt_test::qt_node>(options);
+    // ROS 초기화
+    rclcpp::init(argc, argv);
 
-  // Show the main window
-  MainWindow window;
-  window.show();
+    // MainWindow 객체 생성 및 표시
+    MainWindow window;
+    window.show();
 
-  // // Spin the ROS node in a separate thread
-  // std::thread ros_thread([&]() {
-  //   rclcpp::spin(node);
-  // });
+    // ROS 노드를 별도의 스레드에서 실행
+    std::thread ros_thread([]() {
+        rclcpp::spin(std::make_shared<rclcpp::Node>("ros_thread"));
+        rclcpp::shutdown();
+    });
 
-  // Execute the Qt application
-  int result = app.exec();
+    // Qt 애플리케이션 실행
+    int result = app.exec();
 
-  // // Shutdown ROS
-  // rclcpp::shutdown();
-  // ros_thread.join();
+    // ROS 스레드 종료 대기
+    if (ros_thread.joinable()) {
+        ros_thread.join();
+    }
 
-  return result;
+    return result;
 }

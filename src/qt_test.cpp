@@ -24,37 +24,42 @@ namespace qt_test
     {
         //RCLCPP_INFO(get_logger(),"qt_node starting");
 
-        // 로그 파일 열기
-        icp_log_file_.open("frm_icp_log.txt", std::ios::out | std::ios::app);
-
-        if (!icp_log_file_.is_open()) {
-            RCLCPP_ERROR(this->get_logger(), "Failed to open ICP log file.");
-        }
 
         marker_publisher_ = this->create_publisher<visualization_msgs::msg::Marker>("visualization_marker", 10);
         marker_publisher_2 = this->create_publisher<visualization_msgs::msg::Marker>("visualization_marker_frame", 10);
 
-        // live_cloud = get_vmark_cloud();
-        // live_tree = new KD_TREE_XYZR(3, live_cloud, nanoflann::KDTreeSingleIndexAdaptorParams(3)); //REAF10
-        // live_tree->buildIndex();
-
-        c_point T1 = c_point(3, 0);
-        c_point T2 = c_point(3 -2*DOCK_SIZE_X[1], 0 + 1*DOCK_SIZE_Y[1]);
-        c_point T3 = c_point(3 -2*DOCK_SIZE_X[1], 0 - 1*DOCK_SIZE_Y[1]);
+        // c_point T1 = c_point(3, 0);
+        // c_point T2 = c_point(3 -2*DOCK_SIZE_X[1], 0 + 1*DOCK_SIZE_Y[1]);
+        // c_point T3 = c_point(3 -2*DOCK_SIZE_X[1], 0 - 1*DOCK_SIZE_Y[1]);
 
 
 
-        // FRAME frm = generateSampleFrame(T1,T2, T3);
-        // RCLCPP_INFO(this->get_logger(), "KD Tree built with %zu points", live_cloud.pts.size());
+        // dock_tf = Eigen::Matrix4d::Identity();
 
-        timer_ = this->create_wall_timer(50ms, std::bind(&qt_node::timerCallback, this));
+
+
+        // KFRAME frm0 = generateSampleKFrame(T1,T2, T3);
+        // KFRAME target = generateVKFrame();
+
+       // double err2 = kfrm_icp(frm0, target, dock_tf);
+       // RCLCPP_INFO(get_logger(), "ICP error: %f", err2);
+       // RCLCPP_INFO(get_logger(), "dock_tf: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f", dock_tf(0,0), dock_tf(0,1), dock_tf(0,2), dock_tf(0,3), dock_tf(1,0), dock_tf(1,1), dock_tf(1,2), dock_tf(1,3), dock_tf(2,0), dock_tf(2,1), dock_tf(2,2), dock_tf(2,3), dock_tf(3,0), dock_tf(3,1), dock_tf(3,2), dock_tf(3,3));
+    }
+
+
+    void qt_node::icp_go(){
+
+
+        icp_log_file_.open("frm_icp_log.txt", std::ios::out);
+        if (!icp_log_file_.is_open()) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to open ICP log file.");
+        }
+
+        c_point T1 = c_point(DOCK_X, 0);
+        c_point T2 = c_point(DOCK_X -2*DOCK_SIZE_X[1], DOCK_Y + 1*DOCK_SIZE_Y[1]);
+        c_point T3 = c_point(DOCK_X -2*DOCK_SIZE_X[1], DOCK_Y - 1*DOCK_SIZE_Y[1]);
 
         dock_tf = Eigen::Matrix4d::Identity();
-
-        // double err = frm_icp(*live_tree, live_cloud, frm, dock_tf);
-        // RCLCPP_INFO(get_logger(), "ICP error: %f", err);
-        // RCLCPP_INFO(this->get_logger(), "dock_tf: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f", dock_tf(0,0), dock_tf(0,1), dock_tf(0,2), dock_tf(0,3), dock_tf(1,0), dock_tf(1,1), dock_tf(1,2), dock_tf(1,3), dock_tf(2,0), dock_tf(2,1), dock_tf(2,2), dock_tf(2,3), dock_tf(3,0), dock_tf(3,1), dock_tf(3,2), dock_tf(3,3));
-
 
         KFRAME frm0 = generateSampleKFrame(T1,T2, T3);
         KFRAME target = generateVKFrame();
@@ -62,8 +67,8 @@ namespace qt_test
         double err2 = kfrm_icp(frm0, target, dock_tf);
         RCLCPP_INFO(get_logger(), "ICP error: %f", err2);
         RCLCPP_INFO(get_logger(), "dock_tf: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f", dock_tf(0,0), dock_tf(0,1), dock_tf(0,2), dock_tf(0,3), dock_tf(1,0), dock_tf(1,1), dock_tf(1,2), dock_tf(1,3), dock_tf(2,0), dock_tf(2,1), dock_tf(2,2), dock_tf(2,3), dock_tf(3,0), dock_tf(3,1), dock_tf(3,2), dock_tf(3,3));
-    }
 
+    }
 
     void qt_node::timerCallback() {
 
@@ -78,67 +83,6 @@ namespace qt_test
         KFRAME target = generateVKFrame();
         publishKFrameMarker(target, 1, "v_kframe", 0.0, 1.0, 0.0);
 
-        // //RCLCPP_INFO(get_logger(), "Publishing marker");
-        // visualization_msgs::msg::Marker marker_msg;
-        // marker_msg.header.frame_id = "map";       // RViz에서 참조할 프레임 ID
-        // marker_msg.header.stamp = this->now();
-        // marker_msg.ns = "vmark_points";
-        // marker_msg.id = 0;
-        // marker_msg.type = visualization_msgs::msg::Marker::POINTS;
-        // marker_msg.action = visualization_msgs::msg::Marker::ADD;
-        // marker_msg.scale.x = 0.05; // 포인트 크기
-        // marker_msg.scale.y = 0.05;
-        // marker_msg.color.r = 1.0f; // 빨간색
-        // marker_msg.color.g = 0.0f;
-        // marker_msg.color.b = 0.0f;
-        // marker_msg.color.a = 1.0f; // 투명도
-
-        // // Marker에 포인트 데이터 추가
-        // for (const auto& pt : live_cloud.pts) {
-        //     geometry_msgs::msg::Point p;
-        //     p.x = pt.x;
-        //     p.y = pt.y;
-        //     p.z = pt.z;
-        //     marker_msg.points.push_back(p);
-        // }
-
-        // // 메시지 퍼블리시
-        // marker_publisher_->publish(marker_msg);
-
-        // c_point T1 = c_point(3, 0);
-        // c_point T2 = c_point(3 -2*DOCK_SIZE_X[1], 0 + 1*DOCK_SIZE_Y[1]);
-        // c_point T3 = c_point(3 -2*DOCK_SIZE_X[1], 0 - 1*DOCK_SIZE_Y[1]);
-
-
-
-        // FRAME frm = generateSampleFrame(T1,T2, T3);
-
-        //         // 새로운 Marker 메시지로 FRAME 퍼블리시
-        // visualization_msgs::msg::Marker marker_msg_2;
-        // marker_msg_2.header.frame_id = "map";
-        // marker_msg_2.header.stamp = this->now();
-        // marker_msg_2.ns = "frame_points";
-        // marker_msg_2.id = 1;
-        // marker_msg_2.type = visualization_msgs::msg::Marker::POINTS;
-        // marker_msg_2.action = visualization_msgs::msg::Marker::ADD;
-        // marker_msg_2.scale.x = 0.03;
-        // marker_msg_2.scale.y = 0.03;
-        // marker_msg_2.color.r = 0.0f;
-        // marker_msg_2.color.g = 0.0f;
-        // marker_msg_2.color.b = 1.0f;
-        // marker_msg_2.color.a = 1.0f;
-
-        // for (const auto& pt : frm.pts) {
-        //     geometry_msgs::msg::Point p;
-        //     p.x = pt.x();
-        //     p.y = pt.y();
-        //     p.z = pt.z();
-        //     marker_msg_2.points.push_back(p);
-        // }
-
-        // marker_publisher_2->publish(marker_msg_2);
-        //RCLCPP_INFO(get_logger(), "now");
-        // double err = frm_icp(*live_tree, live_cloud, frm, dock_tf);
     }
 
 
@@ -253,7 +197,7 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
     
         for(size_t p = 0; p < idx_list.size(); p++)
         {
-            RCLCPP_INFO(get_logger(), "p: %d", p);
+
             icp_log_file_ << "\n";
             log_icp("p: " + std::to_string(p));
                   //RCLCPP_INFO(get_logger(), "now10");
@@ -277,13 +221,13 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
             icp_log_file_ << "] * [" << P1[0] << ", " << P1[1] << ", " << P1[2] << "]\n";
             icp_log_file_ << "\n";
             log_icp("V1: " + std::to_string(V1[0]) + " " + std::to_string(V1[1]) + " " + std::to_string(V1[2]));
-                //RCLCPP_INFO(get_logger(), "now19");
+
             // knn points            
             int nn_idx = 0;
             Eigen::Vector3d V0;
             Eigen::Vector3d P0(0, 0, 0);
 
-                //RCLCPP_INFO(get_logger(), "now20");
+     
             {
                 const int pt_num = 5;
                 std::vector<unsigned int> ret_near_idxs(pt_num);
@@ -293,20 +237,19 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
                 tree.knnSearch(&near_query_pt[0], pt_num, &ret_near_idxs[0], &ret_near_sq_dists[0]);
 
                 nn_idx = ret_near_idxs[0];
-                               //RCLCPP_INFO(get_logger(), "now21");
+                    
                 V0 = Eigen::Vector3d(cloud.pts[nn_idx].vx, cloud.pts[nn_idx].vy, cloud.pts[nn_idx].vz);
-                RCLCPP_INFO(get_logger(), "V0: [%f, %f, %f]", V0[0], V0[1], V0[2]);
+     
                 log_icp("V0: " + std::to_string(V0[0]) + " " + std::to_string(V0[1]) + " " + std::to_string(V0[2]));
-                //RCLCPP_INFO(get_logger(), "now11");
+       
                 for(int q = 0; q < pt_num; q++)
                 {
-                    //RCLCPP_INFO(get_logger(), "now12");
+
                     int idx = ret_near_idxs[q];
                     P0 += Eigen::Vector3d(cloud.pts[idx].x, cloud.pts[idx].y, cloud.pts[idx].z);
                 }
                 P0 /= pt_num;
   
-                RCLCPP_INFO(get_logger(), "P0: [%f, %f, %f]", P0[0], P0[1], P0[2]);
             }
 
 
@@ -314,7 +257,7 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
             if(compare_view_vector(V0, V1, 150.0*0.0174533))
             {
                 log_icp("View filter");
-                RCLCPP_INFO(get_logger(), "view filter");
+ 
                 continue;
             }
 
@@ -330,13 +273,13 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
             }
             log_icp("_P1: " + std::to_string(_P1[0]) + " " + std::to_string(_P1[1]) + " " + std::to_string(_P1[2]));
             log_icp("P0: " + std::to_string(P0[0]) + " " + std::to_string(P0[1]) + " " + std::to_string(P0[2]));
-            RCLCPP_INFO(get_logger(), "P1: [%f, %f, %f]", _P1[0], _P1[1], _P1[2]);
-            RCLCPP_INFO(get_logger(), "P0: [%f, %f, %f]", P0[0], P0[1], P0[2]);
+ 
             // point to point distance
             double cost = (_P1 - P0).squaredNorm();
             double cost_root = std::sqrt(cost);
             log_icp("Cost: " + std::to_string(cost));
-            RCLCPP_INFO(get_logger(), "norm costroot: %f", cost_root);
+            RCLCPP_INFO(get_logger(), " costroot: %f", cost_root);
+
             // if(cost > cost_threshold || std::abs(cost) > rmt*std::abs(cost) + 100.0) //0.01
             // {
             //     RCLCPP_INFO(get_logger(), "cost root: %f", cost_root);
@@ -345,7 +288,7 @@ double qt_node::frm_icp(KD_TREE_XYZR& tree, XYZR_CLOUD& cloud, FRAME& frm, Eigen
             if(cost > cost_threshold ) //0.01
             {
                 log_icp("Cost threshold");
-                RCLCPP_INFO(get_logger(), "cost root: %f", cost_root);
+                RCLCPP_INFO(get_logger(), "Cost threshold");
                 continue;
             }
             // jacobian
@@ -617,6 +560,8 @@ Eigen::Vector3d qt_node::TF_to_se2(Eigen::Matrix4d tf)
 
 double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
 {
+    std::random_device rd; // 하드웨어 랜덤 엔진
+    std::default_random_engine engine(rd());
     // for processing time
     double t_st = rclcpp::Clock().now().seconds();
 
@@ -658,8 +603,8 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
     double convergence = 9999;
     int num_correspondence = 0;
 
-    const double cost_threshold = 3.0*3.0;//0.5 * 0.5;//00000.0;
-    const int num_feature = std::min<int>(idx_list.size(),1000);
+    const double cost_threshold = ICP_COST_THRESHOLD*ICP_COST_THRESHOLD;//0.5 * 0.5;//00000.0;
+    const int num_feature = std::min<int>(idx_list.size(),ICP_MAX_FEATURE_NUM);
 
     // for rmt
     double tm0 = 0;
@@ -671,14 +616,15 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
         RCLCPP_INFO(get_logger(), "iter: %d", iter);
         log_icp("Iteration: " + std::to_string(iter));
 
-        std::shuffle(idx_list.begin(), idx_list.end(), std::default_random_engine());
+        std::shuffle(idx_list.begin(), idx_list.end(), engine);
+        // std::shuffle(idx_list.begin(), idx_list.end(), std::default_random_engine());
 
         std::vector<double> costs;
         std::vector<COST_JACOBIAN> cj_set;
 
         for(size_t p = 0; p < idx_list.size(); p++)
         {
-            RCLCPP_INFO(get_logger(), "p: %d", p);
+
             icp_log_file_ << "\n";
             log_icp("p: " + std::to_string(p));
             // get index
@@ -690,16 +636,6 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
             Eigen::Vector3d _P1 = _dG.block(0,0,3,3)*P1 + _dG.block(0,3,3,1);
             // log_icp("_P1: "+ std::to_string(_P1[0]) + " " + std::to_string(_P1[1]) + " " + std::to_string(_P1[2]));
 
-            // icp_log_file_ << "[";
-            // for (int i = 0; i < 3; ++i) {
-            //     for (int j = 0; j < 3; ++j) {
-            //         icp_log_file_ << _dG(i, j);
-            //         if (j < 2) icp_log_file_ << ", ";
-            //     }
-            //     icp_log_file_ << " | " << _dG(i, 3) << "\n";
-            // }
-            // icp_log_file_ << "] * [" << P1[0] << ", " << P1[1] << ", " << P1[2] << "]\n";
-            // icp_log_file_ << "\n";
             // knn points
             int nn_idx = 0;
             Eigen::Vector3d P0(0, 0, 0);
@@ -731,23 +667,25 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
                 }
             }
 
-            // point to point distance
-            // log_icp("_P1: " + std::to_string(_P1[0]) + " " + std::to_string(_P1[1]) + " " + std::to_string(_P1[2]));
-            // log_icp("P0: " + std::to_string(P0[0]) + " " + std::to_string(P0[1]) + " " + std::to_string(P0[2]));
+         
             double cost = (_P1 - P0).squaredNorm();
 
+            // RCLCPP_INFO(get_logger(), " cost: %f", cost);
             log_icp("Cost: " + std::to_string(cost));
-            if(cost > cost_threshold)
-            {
-                log_icp("Cost threshold");
-                continue;
-            }
 
-            // if(cost > cost_threshold || std::abs(cost) > rmt*std::abs(cost) + 0.01)
+            // if(cost > cost_threshold)
             // {
+            //     RCLCPP_INFO(get_logger(), "Cost threshold");
             //     log_icp("Cost threshold");
             //     continue;
             // }
+
+            if(cost > cost_threshold || std::abs(cost) > rmt*std::abs(cost) + 0.01)
+            {
+                RCLCPP_INFO(get_logger(), "Cost threshold");
+                log_icp("Cost threshold");
+                continue;
+            }
 
             // jacobian
             Eigen::Vector3d xi = TF_to_se2(_dG);
@@ -790,8 +728,9 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
 
         // num of correspondence
         num_correspondence = cj_set.size();
+        RCLCPP_INFO(get_logger(), "num_correspondence: %d", num_correspondence);
         log_icp("Num correspondence: " + std::to_string(num_correspondence));
-        if(num_correspondence < 1)
+        if(num_correspondence < ICP_CORRESPONDENCE_THRESHOLD)
         {
             printf("[frm_icp] not enough correspondences, %d!!\n", num_correspondence);
             return 9999;
@@ -895,8 +834,9 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
         {
             break;
         }
-    }
-           // 현재 변환 행렬에 따른 cur_frame 포인트 변환 및 시각화
+
+
+         // 현재 변환 행렬에 따른 cur_frame 포인트 변환 및 시각화
             visualization_msgs::msg::Marker marker_msg;
             marker_msg.header.frame_id = "map";
             marker_msg.header.stamp = this->now();
@@ -907,8 +847,8 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
             marker_msg.scale.x = 0.02;
             marker_msg.scale.y = 0.02;
             marker_msg.color.r = 0.0f;
-            marker_msg.color.g = 1.0f - (float)iter / max_iter;
-            marker_msg.color.b = (float)iter / max_iter;
+            marker_msg.color.g = 0.3f;
+            marker_msg.color.b = 1.0f;
             marker_msg.color.a = 1.0f;
 
             // 현재 반복에서 포인트 변환
@@ -929,6 +869,11 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
             // Marker 퍼블리시
             marker_publisher_->publish(marker_msg);
 
+            // 0.5초 대기
+                rclcpp::sleep_for(200ms);
+    }
+  
+
     // update
     dG = _dG*dG;
 
@@ -945,9 +890,18 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
 FRAME qt_node::generateSampleFrame(const c_point& p1, const c_point& p2, const c_point& p3)
 {
 
+    Eigen::Matrix2d rotation_matrix;
+    rotation_matrix << std::cos(DOCK_ANGLE), -std::sin(DOCK_ANGLE),
+                       std::sin(DOCK_ANGLE),  std::cos(DOCK_ANGLE);
+
     // Gaussian noise generator
     std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 0.01);
+    std::normal_distribution<double> distribution(0.0, sample_noise);
+
+    double center_x = (p1.first + p2.first + p3.first) / 3.0;
+    double center_y = (p1.second + p2.second + p3.second) / 3.0;
+    Eigen::Vector2d center(center_x, center_y);
+
 
     FRAME frame;
     // Generate left side points from p1 to p2
@@ -960,13 +914,23 @@ FRAME qt_node::generateSampleFrame(const c_point& p1, const c_point& p2, const c
         double noise_x = distribution(generator);
         double noise_y = distribution(generator);
         double noise_z = distribution(generator);
-        frame.pts.push_back(Eigen::Vector3d(pt.x + noise_x, pt.y +noise_y, pt.z));
+
+        Eigen::Vector2d point(pt.x + noise_x, pt.y + noise_y);
+        Eigen::Vector2d translated_point = point - center;
+        Eigen::Vector2d rotated_point = rotation_matrix * translated_point + center;
+        frame.pts.push_back(Eigen::Vector3d(rotated_point[0], rotated_point[1], pt.z));
+        // frame.pts.push_back(Eigen::Vector3d(pt.x + noise_x, pt.y +noise_y, pt.z));
     }
     for (const auto& pt : right_cloud.pts) {
         double noise_x = distribution(generator);
         double noise_y = distribution(generator);
         double noise_z = distribution(generator);
-        frame.pts.push_back(Eigen::Vector3d(pt.x + noise_x, pt.y + noise_y, pt.z));
+        Eigen::Vector2d point(pt.x + noise_x, pt.y + noise_y);
+        Eigen::Vector2d translated_point = point - center;
+        Eigen::Vector2d rotated_point = rotation_matrix * translated_point + center;
+
+        frame.pts.push_back(Eigen::Vector3d(rotated_point[0], rotated_point[1], pt.z));
+        // frame.pts.push_back(Eigen::Vector3d(pt.x + noise_x, pt.y + noise_y, pt.z));
     }
 
     return frame;
@@ -977,7 +941,16 @@ KFRAME qt_node::generateSampleKFrame(const c_point& p1, const c_point& p2, const
 {
     // Gaussian noise generator
     std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 0.01);
+    std::normal_distribution<double> distribution(0.0, sample_noise);
+
+    double center_x = (p1.first + p2.first + p3.first) / 3.0;
+    double center_y = (p1.second + p2.second + p3.second) / 3.0;
+    Eigen::Vector2d center(center_x, center_y);
+
+    Eigen::Matrix2d rotation_matrix;
+    rotation_matrix << std::cos(DOCK_ANGLE), -std::sin(DOCK_ANGLE),
+                       std::sin(DOCK_ANGLE),  std::cos(DOCK_ANGLE);
+
 
     KFRAME frame;
     // Generate left side points from p1 to p2
@@ -990,8 +963,12 @@ KFRAME qt_node::generateSampleKFrame(const c_point& p1, const c_point& p2, const
         double noise_x = distribution(generator);
         double noise_y = distribution(generator);
         double noise_z = distribution(generator);
-        pt.x += noise_x;
-        pt.y += noise_y;
+        Eigen::Vector2d point(pt.x + noise_x, pt.y + noise_y);
+        Eigen::Vector2d translated_point = point - center;
+        Eigen::Vector2d rotated_point = rotation_matrix * translated_point + center;
+
+        pt.x = rotated_point[0];
+        pt.y = rotated_point[1];
         pt.z = 0.0;
         frame.pts.push_back(pt);
     }
@@ -999,8 +976,12 @@ KFRAME qt_node::generateSampleKFrame(const c_point& p1, const c_point& p2, const
         double noise_x = distribution(generator);
         double noise_y = distribution(generator);
         double noise_z = distribution(generator);
-        pt.x += noise_x;
-        pt.y += noise_y;
+        Eigen::Vector2d point(pt.x + noise_x, pt.y + noise_y);
+        Eigen::Vector2d translated_point = point - center;
+        Eigen::Vector2d rotated_point = rotation_matrix * translated_point + center;
+
+        pt.x = rotated_point[0];
+        pt.y = rotated_point[1];
         pt.z = 0.0;
         frame.pts.push_back(pt);
     }

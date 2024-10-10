@@ -154,7 +154,9 @@ namespace qt_test
             double DOCK_SIZE_Y[2] = {-0.15, 0.15};
             // double DOCK_SIZE_X[2] = {-2.0, 2.0};
             // double DOCK_SIZE_Y[2] = {-3.0, 3.0};    
-            double DOCK_ANGLE = 45.0;
+            double DOCK_ANGLE = 0.0;
+            double DOCK_X = 3.0;
+            double DOCK_Y = 0.0;
             //for ICP
             XYZR_CLOUD get_vmark_cloud();
             XYZR_CLOUD live_cloud;
@@ -176,6 +178,12 @@ namespace qt_test
             KFRAME generateVKFrame();
             void publishKFrameMarker(const KFRAME& kframe, int marker_id, const std::string& ns, float r, float g, float b);
             std::ofstream icp_log_file_; 
+            void icp_go();
+
+            double sample_noise = 0.01;
+            int ICP_MAX_FEATURE_NUM = 1000;
+            double ICP_COST_THRESHOLD = 3.0;
+            int ICP_CORRESPONDENCE_THRESHOLD = 10;
         private:
             void timerCallback();
             rclcpp::TimerBase::SharedPtr timer_;
