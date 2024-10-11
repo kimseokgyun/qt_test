@@ -150,8 +150,10 @@ namespace qt_test
         public:
             explicit qt_node (const rclcpp::NodeOptions & options);
 
-            double DOCK_SIZE_X[2] = {-0.03, 0.03};
-            double DOCK_SIZE_Y[2] = {-0.15, 0.15};
+            double DOCK_SIZE_X[2] = {-0.025, 0.025};
+            double DOCK_SIZE_Y[2] = {-0.2, 0.2};
+            double ROBOT_SIZE_X[2] = {-0.45,0.45};
+            double ROBOT_SIZE_Y[2] = {-0.45,0.45};
             // double DOCK_SIZE_X[2] = {-2.0, 2.0};
             // double DOCK_SIZE_Y[2] = {-3.0, 3.0};    
             double DOCK_ANGLE = 0.0;
@@ -164,6 +166,13 @@ namespace qt_test
             KD_TREE_XYZR *live_tree = NULL;
             Eigen::Matrix4d dock_tf;
             //for utils
+
+
+            //for move icp
+            Eigen::Vector3d calculateCenter(const KFRAME& frame);
+            Eigen::Matrix4d calculateTranslationMatrix(const Eigen::Vector3d& from, const Eigen::Vector3d& to);
+  
+
             XYZR_CLOUD generateSamplePoints(const c_point&, const c_point&, int n);
             bool compare_view_vector(Eigen::Vector3d V0, const Eigen::Vector3d V1, double threshold);
             double calc_dist_2d(Eigen::Vector3d P);

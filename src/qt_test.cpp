@@ -16,6 +16,7 @@ using namespace std::chrono_literals;
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
+// #define first_move_icp
 
 namespace qt_test
 {
@@ -48,8 +49,7 @@ namespace qt_test
 
 
     void qt_node::icp_go(){
-
-
+        
         icp_log_file_.open("frm_icp_log.txt", std::ios::out);
         if (!icp_log_file_.is_open()) {
             RCLCPP_ERROR(this->get_logger(), "Failed to open ICP log file.");
@@ -560,6 +560,20 @@ Eigen::Vector3d qt_node::TF_to_se2(Eigen::Matrix4d tf)
 
 double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
 {
+
+
+
+
+    #ifdef first_move_icp
+
+    Eigen::Vector3d frm0_center0 = calculateCenter(frm0);
+    Eigen::Vector3d frm1_center1 = calculateCenter(frm1);
+
+    dG = calculateTranslationMatrix(frm1_center1, frm0_center0);
+    RCLCPP_INFO(get_logger(), "dG: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f", dG(0,0), dG(0,1), dG(0,2), dG(0,3), dG(1,0), dG(1,1), dG(1,2), dG(1,3), dG(2,0), dG(2,1), dG(2,2), dG(2,3), dG(3,0), dG(3,1), dG(3,2), dG(3,3));
+    #endif
+
+
     std::random_device rd; // 하드웨어 랜덤 엔진
     std::default_random_engine engine(rd());
     // for processing time
@@ -578,6 +592,8 @@ double qt_node::kfrm_icp(KFRAME& frm0, KFRAME& frm1, Eigen::Matrix4d& dG)
     // points random selection
     std::vector<int> idx_list;
     std::vector<PT_XYZR> pts;
+
+
     for(size_t p = 0; p < frm1.pts.size(); p++)
     {
         idx_list.push_back(p);
@@ -1008,9 +1024,9 @@ KFRAME qt_node::generateVKFrame()
         // c_point p3 = c_point(robot_size_x, -dock_size_y);
 
 
-        c_point p1 = c_point(0.0 ,0.0);
-        c_point p2 = c_point(0.0 -2*DOCK_SIZE_X[1], 0.0 + 1*DOCK_SIZE_Y[1]);
-        c_point p3 = c_point(0.0 -2*DOCK_SIZE_X[1], 0.0- 1*DOCK_SIZE_Y[1]);
+        c_point p1 = c_point(ROBOT_SIZE_X[1]+ 2*DOCK_SIZE_X[1] ,0.0);
+        c_point p2 = c_point(p1.first - 2*DOCK_SIZE_X[1] , p1.second + 1*DOCK_SIZE_Y[1]);
+        c_point p3 = c_point(p1.first -2*DOCK_SIZE_X[1], p1.second- 1*DOCK_SIZE_Y[1]);
 
         res_l = generateSamplePoints(p1, p2, 30);
         res_r = generateSamplePoints(p1, p3, 30);
@@ -1052,6 +1068,28 @@ void qt_node::publishKFrameMarker(const KFRAME& kframe, int marker_id, const std
 
     marker_publisher_2->publish(marker_msg);
 }
+
+Eigen::Vector3d qt_node::calculateCenter(const KFRAME& kframe) {
+    Eigen::Vector3d center(0.0, 0.0, 0.0);
+
+
+    for (const auto& pt : kframe.pts) {
+        center(0) += pt.x;
+        center(1) += pt.y;
+    }
+    
+    center /= static_cast<double>(kframe.pts.size());
+    return center;
+}
+
+Eigen::Matrix4d qt_node::calculateTranslationMatrix(const Eigen::Vector3d& from, const Eigen::Vector3d& to) {
+    Eigen::Matrix4d translationMatrix = Eigen::Matrix4d::Identity();
+    translationMatrix(0, 3) = to[0] - from[0];
+    translationMatrix(1, 3) = to[1] - from[1];
+    translationMatrix(2, 3) = to[2] - from[2];
+    return translationMatrix;
+}
+
 
 
 }  // namespace qt_node
